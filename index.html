@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#13232d">
+  <meta name="description" content="PWA per cronometro turno e contapezzi teorico a 600 pezzi/ora.">
+  <title>Contapezzi Turno</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="card hero">
+      <div class="hero-top">
+        <div>
+          <p class="eyebrow">Linea robot</p>
+          <h1>Contapezzi turno</h1>
+          <p class="hero-copy">
+            Cronometro live da <strong>8 ore</strong> con ritmo medio fissato a
+            <strong>600 pezzi/ora</strong>. Se la macchina va in <strong>Fermo</strong>,
+            l'obiettivo turno si abbassa in tempo reale e i pezzi mancanti vengono giustificati.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <span class="status-pill" id="sessionStatus">Non avviato</span>
+          <button class="ghost-button" id="installButton" hidden>Installa app</button>
+        </div>
+      </div>
+
+      <section class="timer-panel">
+        <p class="label">Cronometro turno</p>
+        <p class="timer" id="timerDisplay" aria-live="polite">00:00:00</p>
+        <p class="timer-note" id="timerNote">
+          Il tempo viene salvato in locale e ricalcolato in base all'orario reale.
+        </p>
+      </section>
+
+      <div class="control-row">
+        <button class="primary-button" id="startButton">Avvia turno</button>
+        <button class="danger-button" id="stopButton" disabled>Fermo</button>
+        <button class="ghost-button" id="resetButton">Azzera turno</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="card panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Passo teorico</p>
+            <h2>Produzione attesa</h2>
+          </div>
+          <div class="rhythm-strip" aria-label="Parametri ritmo">
+            <div class="rhythm-chip">
+              <strong>600</strong>
+              <span>pezzi/ora</span>
+            </div>
+            <div class="rhythm-chip">
+              <strong>10</strong>
+              <span>pezzi/min</span>
+            </div>
+            <div class="rhythm-chip">
+              <strong>4800</strong>
+              <span>massimo turno</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <article class="metric-card accent-card">
+            <p class="label">Pezzi teorici adesso</p>
+            <p class="metric-value" id="expectedPieces">0</p>
+            <p class="metric-note" id="expectedPiecesNote">Ricalcolo continuo in tempo reale.</p>
+          </article>
+          <article class="metric-card">
+            <p class="label">Avanzamento turno</p>
+            <p class="metric-value" id="shiftProgress">0%</p>
+            <p class="metric-note" id="shiftProgressNote">Nessun turno attivo.</p>
+          </article>
+          <article class="metric-card">
+            <p class="label">Pezzi giustificati</p>
+            <p class="metric-value" id="justifiedPieces">0</p>
+            <p class="metric-note" id="justifiedPiecesNote">Aumentano durante il fermo macchina.</p>
+          </article>
+          <article class="metric-card">
+            <p class="label">Tempo fermo totale</p>
+            <p class="metric-value" id="downtimeTotal">00:00:00</p>
+            <p class="metric-note" id="downtimeTotalNote">Nessun fermo registrato.</p>
+          </article>
+          <article class="metric-card">
+            <p class="label">Tempo rimanente</p>
+            <p class="metric-value" id="remainingTime">08:00:00</p>
+            <p class="metric-note" id="remainingTimeNote">Mancano tutte le 8 ore.</p>
+          </article>
+          <article class="metric-card">
+            <p class="label">Obiettivo turno aggiornato</p>
+            <p class="metric-value" id="shiftTarget">4800</p>
+            <p class="metric-note" id="shiftTargetNote">Scende in tempo reale se la macchina e ferma.</p>
+          </article>
+        </div>
+
+        <section class="progress-panel">
+          <div class="progress-head">
+            <span>Stato del turno</span>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <p class="progress-caption" id="progressCaption">
+            Avvia il turno per vedere quanti pezzi dovresti avere in ogni momento.
+          </p>
+        </section>
+      </section>
+
+      <section class="card panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Contatore reale</p>
+            <h2>Pezzi prodotti</h2>
+          </div>
+          <p class="panel-copy">
+            Se vuoi, puoi segnare i pezzi reali e confrontarli con il passo teorico.
+          </p>
+        </div>
+
+        <div class="actual-grid">
+          <label class="metric-card input-card" for="actualPiecesInput">
+            <span class="label">Pezzi reali</span>
+            <input id="actualPiecesInput" type="number" inputmode="numeric" min="0" step="1" value="0">
+            <span class="metric-note">Salvato in locale sul dispositivo.</span>
+          </label>
+          <article class="metric-card" id="deltaCard">
+            <p class="label">Scarto dal ritmo</p>
+            <p class="metric-value" id="deltaValue">--</p>
+            <p class="metric-note" id="deltaHint">
+              Inserisci i pezzi reali per vedere se sei avanti o indietro.
+            </p>
+          </article>
+        </div>
+
+        <div class="adjust-row">
+          <button class="chip-button" data-adjust="-10">-10</button>
+          <button class="chip-button" data-adjust="-1">-1</button>
+          <button class="chip-button" data-adjust="1">+1</button>
+          <button class="chip-button" data-adjust="10">+10</button>
+          <button class="ghost-button" id="counterResetButton">Reset pezzi reali</button>
+        </div>
+      </section>
+    </main>
+
+    <section class="card note-card">
+      <p>
+        Suggerimento: installa la PWA sul telefono o sul PC. Anche se il browser mette in pausa
+        gli aggiornamenti visivi in background, al rientro il conteggio si riallinea subito
+        usando il tempo trascorso reale. Su Render avrai un link web installabile sul cellulare.
+      </p>
+    </section>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

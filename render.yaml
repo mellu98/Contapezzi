@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: contapezzi-turno
+    runtime: static
+    buildCommand: "true"
+    staticPublishPath: .
